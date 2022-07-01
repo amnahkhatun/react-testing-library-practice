@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { toHaveStyle } from "@testing-library/jest-dom";
 import App from "./App";
+import { toHaveStyle } from "@testing-library/jest-dom";
+import { replaceCamelWithSpaces } from "./App";
 
 test("button has correct initial color", () => {
   render(<App />);
@@ -32,14 +33,63 @@ test("initial render of checkbox", () => {
 
 test("checkbox checked button disabled", () => {
   render(<App />);
-  const checkbox = screen.getByRole("checkbox");
-  const button = screen.getByRole("button");
+  const checkbox = screen.getByRole("checkbox", {
+    name: "Disable button"
+  });
+  const colorButton = screen.getByRole("button", { name: "Change to blue" });
   //checkbox checked
   fireEvent.click(checkbox);
   //button should be disabled
-  expect(button).toBeDisabled();
+  expect(colorButton).toBeDisabled();
+  //uncheck
+  fireEvent.click(checkbox);
+  expect(colorButton).toBeEnabled();
+});
+
+test("Disabled button has gray background, changes to red", () => {
+  render(<App />);
+  const checkbox = screen.getByRole("checkbox", {
+    name: "Disable button"
+  });
+  const colorButton = screen.getByRole("button", { name: "Change to blue" });
+
+  //disable button
+  fireEvent.click(checkbox);
+  expect(colorButton).toHaveStyle({ backgroundColor: "gray" });
+  //enable
+  fireEvent.click(checkbox);
+  expect(colorButton).toHaveStyle({ backgroundColor: "red" });
+});
+
+test("clicked disabled button has gray background and revert to blue", () => {
+  render(<App />);
+  const checkbox = screen.getByRole("checkbox", {
+    name: "Disable button"
+  });
+  const colorButton = screen.getByRole("button", { name: "Change to blue" });
+  //change button to blue
+  fireEvent.click(colorButton);
+
+  //change to gray
+  fireEvent.click(checkbox);
+  expect(colorButton).toHaveStyle({ backgroundColor: "gray" });
 
   //uncheck
   fireEvent.click(checkbox);
-  expect(button).toBeEnabled();
+
+  //click button change to red
+  fireEvent.click(colorButton);
+  expect(colorButton).toHaveStyle({ backgroundColor: "red" });
+});
+
+describe("all the camelcase replace space test cases", () => {
+  test("no inner capital", () => {
+    expect(replaceCamelWithSpaces("Red")).toBe("Red");
+  });
+  test("one inner capital", () => {
+    expect(replaceCamelWithSpaces("MidnightBlue")).toBe("Midnight Blue");
+  });
+  test("multiple inner capital", () => {
+    expect(replaceCamelWithSpaces("MediumVioletRed")).toBe("Medium Violet Red");
+  });
 });
